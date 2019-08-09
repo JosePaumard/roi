@@ -6,7 +6,7 @@ import org.junit.runner.RunWith;
 
 @RunWith(Cucumber.class)
 @CucumberOptions(
-    features = {"classpath:pro/tremblay/roi/domain"},
+    features = {"classpath:pro/tremblay/roi/domain/currency.feature"},
     glue = {"pro.tremblay.roi.domain"},
     plugin = {"pretty"}
 )

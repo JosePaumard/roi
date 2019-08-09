@@ -1,8 +1,10 @@
 package pro.tremblay.roi.domain;
 
+import cucumber.api.Transform;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+import pro.tremblay.roi.service.util.BigDecimalTransformer;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -16,9 +18,9 @@ public class CurrencyStepdefs {
     private BigDecimal computedAmount;
 
     @Given("^an amount of (.*) (CAD|USD)$")
-    public void an_amount(BigDecimal amount, Currency currency) {
+    public void an_amount(@Transform(BigDecimalTransformer.class) BigDecimal sourceAmount, Currency currency) {
         sourceCurrency = currency;
-        sourceAmount = amount.setScale(4);
+        this.sourceAmount = sourceAmount;
     }
 
     @When("^the amount is converted to (CAD|USD)$")
@@ -28,8 +30,7 @@ public class CurrencyStepdefs {
     }
 
     @Then("^the converted amount is (.*)$")
-    public void the_converted_amount_is(BigDecimal convertedAmount) {
-        convertedAmount = convertedAmount.setScale(4);
+    public void the_converted_amount_is(@Transform(BigDecimalTransformer.class) BigDecimal convertedAmount) {
         assertThat(computedAmount).isEqualTo(convertedAmount);
     }
 }
