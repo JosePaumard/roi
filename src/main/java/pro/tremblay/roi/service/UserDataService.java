@@ -34,12 +34,14 @@ public class UserDataService extends DependencyService {
 
     private final List<Account> accounts = new ArrayList<>();
     private final List<Transaction> transactions = new ArrayList<>();
+    private final Currency userCurrency;
 
     public UserDataService() {
+        userCurrency = Currency.CAD;
     }
 
-    public UserDataService(boolean isThrottling) {
-        super(isThrottling);
+    public UserDataService(Currency currency) {
+        userCurrency = currency;
     }
 
     //
@@ -62,7 +64,7 @@ public class UserDataService extends DependencyService {
      * @return user's currency
      */
     public Currency getUserCurrency() {
-        return Currency.CAD;
+        return this.userCurrency;
     }
 
     /**
@@ -72,7 +74,6 @@ public class UserDataService extends DependencyService {
      * @return user accounts and transactions since the beginning of the period
      */
     public Pair<List<Account>, List<Transaction>> getUserData(LocalDate firstDayOfPeriod) {
-        throttle(50);
         return Pair.of(accounts, transactions);
     }
 

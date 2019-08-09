@@ -319,7 +319,7 @@ public class ReportingService {
                 .map(e -> {
                     Currency currency = e.getKey();
                     BigDecimal rate = exchangeRateService.getExchangeRate(currency, userDataService.getUserCurrency(), date);
-                    return rate.multiply(e.getValue());
+                    return rate.multiply(e.getValue()).setScale(4, RoundingMode.HALF_UP);
                 }));
     }
 
