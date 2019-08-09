@@ -15,25 +15,29 @@
  */
 package pro.tremblay.roi.domain;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 /**
  * All supported currencies
  */
 public enum Currency {
-    CAD(1.0),
-    USD(1.5);
+    CAD("1"),
+    USD("1.5");
 
     /** X-rate. Of course in real life this will not be hardcoded */
-    private final double rate;
+    private final BigDecimal rate;
 
-    Currency(double rate) {
-        this.rate = rate;
+    Currency(String rate) {
+        this.rate = new BigDecimal(rate).setScale(4, RoundingMode.HALF_UP);
     }
 
-    public double getRate() {
+    public BigDecimal getRate() {
         return rate;
     }
 
-    public double convertTo(Currency destination) {
-        return rate / destination.rate;
+    public BigDecimal convertTo(Currency destination) {
+        BigDecimal divide = rate.divide(destination.rate, 12, RoundingMode.HALF_UP);
+        return divide;
     }
 }
