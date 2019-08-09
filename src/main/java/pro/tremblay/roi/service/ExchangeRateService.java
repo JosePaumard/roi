@@ -22,13 +22,6 @@ import java.time.LocalDate;
 
 public class ExchangeRateService extends DependencyService {
 
-    public ExchangeRateService() {
-    }
-
-    public ExchangeRateService(boolean isThrottling) {
-        super(isThrottling);
-    }
-
     /**
      * Give the change rate between the origin and the destination currency at a given date.
      *

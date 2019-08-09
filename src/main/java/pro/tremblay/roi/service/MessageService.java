@@ -17,13 +17,6 @@ package pro.tremblay.roi.service;
 
 public class MessageService extends DependencyService {
 
-    public MessageService() {
-    }
-
-    public MessageService(boolean isThrottling) {
-        super(isThrottling);
-    }
-
     /**
      * Returned the message for this key in the user language
      *

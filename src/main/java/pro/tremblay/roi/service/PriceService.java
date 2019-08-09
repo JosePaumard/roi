@@ -34,13 +34,6 @@ public class PriceService extends DependencyService {
     private final Collection<String> listOfErrors = new HashSet<>();
     private final Map<Security, BigDecimal> prices = new HashMap<>();
 
-    public PriceService() {
-    }
-
-    public PriceService(boolean isThrottling) {
-        super(isThrottling);
-    }
-
     //
     // Methods to call during test to record a fake behavior
     //
@@ -65,7 +58,6 @@ public class PriceService extends DependencyService {
      * and a list of error messages for every position we haven't found a price for
      */
     public Pair<MultiKeyMap<Object, BigDecimal>, Collection<String>> getPricesForPositions(List<Position> positions, LocalDate firstDayOfPeriod, LocalDate lastDay) {
-        throttle(100);
 
         MultiKeyMap<Object, BigDecimal> allPrices = new MultiKeyMap<>();
 

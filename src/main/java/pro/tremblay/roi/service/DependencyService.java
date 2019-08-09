@@ -26,35 +26,4 @@ import java.util.concurrent.TimeUnit;
 public abstract class DependencyService {
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
-    private final boolean isThrottling;
-
-    /**
-     * Default constructor, doesn't throttle.
-     */
-    protected DependencyService() {
-        this(false);
-    }
-
-    /**
-     * @param isThrottling if the service should simulate slowness
-     */
-    protected DependencyService(boolean isThrottling) {
-        this.isThrottling = isThrottling;
-    }
-
-    /**
-     * Induce slowness like a real external API call will do.
-     *
-     * @param milliseconds number of seconds to sleep
-     */
-    protected void throttle(long milliseconds) {
-        if(!isThrottling) {
-            return;
-        }
-        try {
-            TimeUnit.MILLISECONDS.sleep(milliseconds);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
