@@ -227,7 +227,7 @@ public class ReportingService {
         Currency currency = transaction.getCurrency();
         LocalDate tradeDate = transaction.getTradeDate();
         if(currency == null || tradeDate == null) {
-            return BigDecimal.ZERO;
+            return BigDecimal.ZERO.setScale(4);
         }
         return exchangeRateService.getExchangeRate(currency, userDataService.getUserCurrency(), tradeDate);
     }
@@ -239,7 +239,7 @@ public class ReportingService {
      * @return the commission, in user currency
      */
     BigDecimal calculateCommission(List<Transaction> transactions) {
-        BigDecimal amount = BigDecimal.ZERO;
+        BigDecimal amount = BigDecimal.ZERO.setScale(4);
         for(Transaction transaction : transactions) {
             BigDecimal fee = transaction.getFee();
             if(fee == null) {
@@ -251,7 +251,7 @@ public class ReportingService {
             }
 
             BigDecimal rate = getExchangeRateAtTradeDate(transaction);
-            amount = amount.add(rate.multiply(fee));
+            amount = amount.add(rate.multiply(fee)).setScale(4, RoundingMode.HALF_UP);
         }
 
         return amount;

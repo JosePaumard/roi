@@ -29,8 +29,6 @@ public class CalculateCashValueStepdefs {
     public void an_empty_position() {
         this.positions = new HashMap<>();
         BigDecimal zero = BigDecimal.ZERO;
-        System.out.println("zero = " + zero);
-        System.out.println("zero.scale() = " + zero.scale());
     }
 
     @When("^the cash value is computed in (CAD|USD)$")
@@ -42,7 +40,6 @@ public class CalculateCashValueStepdefs {
         ReportingService reportingService = new ReportingService(userDataService, priceService, exchangeRateService, messageService);
         LocalDate now = LocalDate.now();
         cashValue = reportingService.calculateCashValue(now, this.positions);
-        System.out.println("cashValue = " + cashValue);
     }
 
     @Then("^the resulting cash value is (.*)$")
