@@ -6,6 +6,7 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import org.assertj.core.api.Assertions;
 import pro.tremblay.roi.domain.Currency;
+import pro.tremblay.roi.service.*;
 import pro.tremblay.roi.service.util.BigDecimalTransformer;
 
 import java.math.BigDecimal;

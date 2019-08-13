@@ -214,7 +214,7 @@ public class ReportingService {
         return sum(transactions.stream()
                 .filter(t -> t.getAmount() != null)
                 .filter(t -> t.getType().equals(TransactionType.deposit) || t.getType().equals(TransactionType.withdrawal))
-                .map(t -> t.getAmount().multiply(getExchangeRateAtTradeDate(t))));
+                .map(t -> t.getAmount().multiply(getExchangeRateAtTradeDate(t)).setScale(4, RoundingMode.HALF_UP)));
     }
 
     /**

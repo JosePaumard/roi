@@ -1,9 +1,11 @@
 Feature: The commission of a collection of transactions can be computed
 
-    A transaction fee has three parameters:
+    A transaction fee has four parameters:
     - an amount
+    - a fee
     - a currency
     - a date
+
 
     Scenario Template: The commission of an empty collection of transaction is 0
         Given an empty collection of transactions
@@ -13,6 +15,7 @@ Feature: The commission of a collection of transactions can be computed
             | commission currency |
             | CAD                 |
             | USD                 |
+
 
     Scenario Template: The commission is 0 when the fee of a transaction is null
         Given the following list of transaction fees
@@ -25,6 +28,7 @@ Feature: The commission of a collection of transactions can be computed
             | commission currency |
             | CAD                 |
             | USD                 |
+
 
     Scenario Template: The commission is 0 when the currency of the fee is null
         Given the following list of transaction fees
@@ -53,12 +57,14 @@ Feature: The commission of a collection of transactions can be computed
             | CAD                 |
             | USD                 |
 
+
     Scenario: The commission corresponds to the fee when it is defined in the same currency
         Given the following transaction fee
             | fee | currency | date       |
             | 10  | CAD      | 2019-07-13 |
         When the commission is calculated in CAD
         Then the calculated commission is 10 for this transaction
+
 
     Scenario Template: The commission corresponds to the fee when it is defined in the same currency
         Given a transaction of fee <fee> <fee currency> dated from <trade date>
@@ -71,6 +77,7 @@ Feature: The commission of a collection of transactions can be computed
             | 0   | USD          | 2019-07-13 | USD                 | 0                   |
             | 10  | USD          | 2019-07-13 | USD                 | 10                  |
 
+
     Scenario Template: The commission corresponds to the converted fee when it is defined in another currency
         Given a transaction of fee <fee> <fee currency> dated from <trade date>
         When the commission is calculated in <commission currency>
@@ -81,6 +88,7 @@ Feature: The commission of a collection of transactions can be computed
             | 10  | USD          | 2019-07-13 | CAD                 | 15                  |
             | 0   | CAD          | 2019-07-13 | USD                 | 0                   |
             | 10  | CAD          | 2019-07-13 | USD                 | 6.6667              |
+
 
     Scenario Template: The commission of a deposit transaction can be computed
         Given a transaction of type deposit of fee <fee> <fee currency> dated from <trade date>
@@ -93,6 +101,7 @@ Feature: The commission of a collection of transactions can be computed
             | 0   | CAD          | 2019-07-13 | USD                 | 0                   |
             | 10  | CAD          | 2019-07-13 | USD                 | 6.6667              |
 
+
     Scenario Template: The commission of a withdrawal transaction can be computed
         Given a transaction of type deposit of fee <fee> <fee currency> dated from <trade date>
         When the commission is calculated in <commission currency>
@@ -103,6 +112,7 @@ Feature: The commission of a collection of transactions can be computed
             | 10  | USD          | 2019-07-13 | CAD                 | 15                  |
             | 0   | CAD          | 2019-07-13 | USD                 | 0                   |
             | 10  | CAD          | 2019-07-13 | USD                 | 6.6667              |
+
 
     Scenario Template: The commission of a sell transaction can be computed
         Given a transaction of type sell of fee <fee> <fee currency> dated from <trade date>
@@ -115,6 +125,7 @@ Feature: The commission of a collection of transactions can be computed
             | 0   | CAD          | 2019-07-13 | USD                 | 0                   |
             | 10  | CAD          | 2019-07-13 | USD                 | 6.6667              |
 
+
     Scenario Template: The commission of a buy transaction can be computed
         Given a transaction of type buy of fee <fee> <fee currency> dated from <trade date>
         When the commission is calculated in <commission currency>
@@ -126,6 +137,7 @@ Feature: The commission of a collection of transactions can be computed
             | 0   | CAD          | 2019-07-13 | USD                 | 0                   |
             | 10  | CAD          | 2019-07-13 | USD                 | 6.6667              |
 
+
     Scenario: The commission of a collection of different transaction types can be computed
         Given the following list of transaction fees of different types
             | fee | currency | type       | date       |
@@ -135,6 +147,7 @@ Feature: The commission of a collection of transactions can be computed
             | 10  | CAD      | buy        | 2019-07-13 |
         When the commission is calculated in CAD
         Then the calculated commission is 40 for this transaction
+
 
     Scenario: The commission of a collection of different transaction types can be computed
         Given the following list of transaction fees of different types
@@ -146,6 +159,7 @@ Feature: The commission of a collection of transactions can be computed
         When the commission is calculated in USD
         Then the calculated commission is 40 for this transaction
 
+
     Scenario: The commission of a collection of different transaction types can be computed
         Given the following list of transaction fees of different types
             | fee | currency | type       | date       |
@@ -155,6 +169,7 @@ Feature: The commission of a collection of transactions can be computed
             | 10  | CAD      | buy        | 2019-07-13 |
         When the commission is calculated in USD
         Then the calculated commission is 26.6668 for this transaction
+
 
     Scenario: The commission of a collection of different transaction types can be computed
         Given the following list of transaction fees of different types

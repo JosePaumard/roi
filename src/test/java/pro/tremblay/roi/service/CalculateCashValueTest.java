@@ -19,6 +19,7 @@ import org.junit.Test;
 import pro.tremblay.roi.domain.Currency;
 import pro.tremblay.roi.domain.Transaction;
 import pro.tremblay.roi.domain.TransactionType;
+import pro.tremblay.roi.service.ReportingServiceTest;
 import pro.tremblay.roi.util.BigDecimalUtil;
 
 import java.math.BigDecimal;

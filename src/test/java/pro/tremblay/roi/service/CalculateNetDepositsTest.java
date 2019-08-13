@@ -20,6 +20,7 @@ import pro.tremblay.roi.domain.Currency;
 import pro.tremblay.roi.domain.Transaction;
 import pro.tremblay.roi.domain.TransactionType;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
@@ -62,5 +63,5 @@ public class CalculateNetDepositsTest extends ReportingServiceTest {
                 transaction().type(TransactionType.withdrawal).amount(bd(-200)).currency(Currency.USD));
         assertThat(reportingService.calculateNetDeposits(transactions)).isEqualByComparingTo("450");
     }
-    
+
 }

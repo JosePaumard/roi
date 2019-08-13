@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class CommissionStepdefs {
+public class TransactionStepdefs {
 
     private List<Transaction> transactions;
     private UserDataService userDataService;
@@ -29,6 +29,8 @@ public class CommissionStepdefs {
     private List<TransactionProxy> transactionProxies;
     private List<BigDecimal> calculatedCommissions;
     private BigDecimal calculatedCommissionFee;
+    private BigDecimal netDeposit;
+    private List<BigDecimal> calculatedNetDeposit;
 
     @Given("^an empty collection of transactions$")
     public void an_empty_collections_of_transactions() {
@@ -40,6 +42,11 @@ public class CommissionStepdefs {
         this.transactionProxies = transactions;
     }
 
+    @Given("^the following list of transactions$")
+    public void the_following_list_of_transactions(List<TransactionProxy> transactions) {
+        this.transactionProxies = transactions;
+    }
+
     @Given("^the following transaction fee$")
     public void the_following_transaction_fee(List<TransactionProxy> transactions) {
         this.transactions = transactions.stream().map(TransactionProxy::buildTransaction).collect(Collectors.toList());
@@ -48,6 +55,22 @@ public class CommissionStepdefs {
     @Given("^a transaction of fee (\\d+) (CAD|USD) dated from (.*)$")
     public void a_transaction(@Transform(BigDecimalTransformer.class) BigDecimal fee, Currency currency, @Transform(LocalDateTransformer.class) LocalDate tradeDate) {
         Transaction transaction = new Transaction().fee(fee).currency(currency).tradeDate(tradeDate);
+        this.transactions = List.of(transaction);
+    }
+
+    @Given("^a transaction of amount (\\d+) (CAD|USD)$")
+    public void a_transaction_of_amount(@Transform(BigDecimalTransformer.class) BigDecimal amount, Currency currency) {
+        Transaction transaction = new Transaction().amount(amount).currency(currency);
+        this.transactions = List.of(transaction);
+    }
+
+    @Given("^a transaction of amount (\\d+) (CAD|USD) of type (deposit|withdrawal|sell|buy) at date (.*)$")
+    public void a_transaction_of_amount_and_type(
+        @Transform(BigDecimalTransformer.class) BigDecimal amount, Currency currency,
+        TransactionType transactionType,
+        @Transform(LocalDateTransformer.class) LocalDate tradeDate) {
+
+        Transaction transaction = new Transaction().amount(amount).currency(currency).type(transactionType).tradeDate(tradeDate);
         this.transactions = List.of(transaction);
     }
 
@@ -94,6 +117,36 @@ public class CommissionStepdefs {
             .collect(Collectors.toList());
     }
 
+    @When("^the net deposit is calculated in (CAD|USD)$")
+    public void the_net_deposit_is_calculated_in(Currency currency) {
+        userDataService = new UserDataService(currency);
+        priceService = new PriceService();
+        exchangeRateService = new ExchangeRateService();
+        messageService = new MessageService();
+
+        ReportingService reportingService = new ReportingService(userDataService, priceService, exchangeRateService, messageService);
+        netDeposit = reportingService.calculateNetDeposits(transactions);
+    }
+
+    @When("^the net deposit is calculated in (CAD|USD) for each transaction$")
+    public void the_net_deposit_is_calculated_in_currency_for_each_transaction(Currency currency) {
+        userDataService = new UserDataService(currency);
+        priceService = new PriceService();
+        exchangeRateService = new ExchangeRateService();
+        messageService = new MessageService();
+
+        ReportingService reportingService = new ReportingService(userDataService, priceService, exchangeRateService, messageService);
+
+        List<Transaction> transactions = transactionProxies.stream()
+            .map(TransactionProxy::buildTransaction)
+            .collect(Collectors.toList());
+
+        calculatedNetDeposit = transactions.stream()
+            .map(List::of)
+            .map(reportingService::calculateNetDeposits)
+            .collect(Collectors.toList());
+    }
+
     @Then("^the calculated commission is (.*) for this transaction$")
     public void the_calculated_commission_is(@Transform(BigDecimalTransformer.class) BigDecimal expectedCommission) {
         assertThat(calculatedCommissionFee).isEqualTo(expectedCommission);
@@ -108,15 +161,30 @@ public class CommissionStepdefs {
         softly.assertAll();
     }
 
+    @Then("^the calculated net deposit is (\\d+\\.?\\d*)$")
+    public void the_calculated_net_deposit_is(@Transform(BigDecimalTransformer.class) BigDecimal expectedNetDeposit) {
+        assertThat(netDeposit).isEqualTo(expectedNetDeposit);
+    }
+
+    @Then("^the calculated net deposit is (.*) for all the transactions$")
+    public void the_calculated_net_deposit_for_all_the_transactions_is(@Transform(BigDecimalTransformer.class) BigDecimal expectedNetDeposit) {
+        SoftAssertions softly = new SoftAssertions();
+        calculatedNetDeposit
+            .forEach(calculatedNetDeposit -> softly.assertThat(calculatedNetDeposit).isEqualTo(expectedNetDeposit));
+
+        softly.assertAll();
+    }
+
     private static class TransactionProxy {
 
         private String fee;
+        private String amount;
         private String currency;
         private String date;
         private String type;
 
         public BigDecimal getFee() {
-            return fee.equals("null") ? BigDecimal.ZERO.setScale(4) : new BigDecimal(fee).setScale(4);
+            return fee == null || fee.equals("null") ? BigDecimal.ZERO.setScale(4) : new BigDecimal(fee).setScale(4);
         }
 
         public void setFee(String fee) {
@@ -146,6 +214,15 @@ public class CommissionStepdefs {
         public TransactionType getType() {
             return TransactionType.valueOf(type);
         }
+
+        public void setAmount(String amount) {
+            this.amount = amount;
+        }
+
+        public BigDecimal getAmount() {
+            return amount.equals("null") ? BigDecimal.ZERO.setScale(4) : new BigDecimal(fee).setScale(4);
+        }
+
 
         public Transaction buildTransaction() {
             return new Transaction().fee(getFee()).currency(getCurrency()).tradeDate(getDate());
