@@ -6,6 +6,7 @@ Feature: the net deposit of a collection of transactions can be calculated
     - a currency
     - a date
 
+
     Scenario Template: The net deposit of an empty collection of transactions is 0
         Given an empty collection of transactions
         When the net deposit is calculated in <currency>
@@ -14,6 +15,7 @@ Feature: the net deposit of a collection of transactions can be calculated
             | currency |
             | CAD      |
             | USD      |
+
 
     Scenario Template: The net deposit is 0 when the transaction has no amount
         Given the following list of transactions
@@ -33,6 +35,7 @@ Feature: the net deposit of a collection of transactions can be calculated
             | CAD                 |
             | USD                 |
 
+
     Scenario Template: The net deposit of a single deposit transaction can be calculated
         Given a transaction of amount <amount> <transaction currency> of type deposit at date <date>
         When the net deposit is calculated in <currency>
@@ -47,6 +50,7 @@ Feature: the net deposit of a collection of transactions can be calculated
             | 10     | CAD                  | USD      | 2019-07-13 | 6.6667               |
             | 0      | USD                  | CAD      | 2019-07-13 | 0                    |
             | 10     | USD                  | CAD      | 2019-07-13 | 15                   |
+
 
     Scenario Template: The net deposit of a single withdrawal transaction can be calculated
         Given a transaction of amount <amount> <transaction currency> of type deposit at date <date>
@@ -63,6 +67,7 @@ Feature: the net deposit of a collection of transactions can be calculated
             | 0      | USD                  | CAD      | 2019-07-13 | 0                    |
             | 10     | USD                  | CAD      | 2019-07-13 | 15                   |
 
+
     Scenario Template: The net deposit of a single sell transaction can be calculated
         Given a transaction of amount <amount> <transaction currency> of type deposit at date <date>
         When the net deposit is calculated in <currency>
@@ -77,6 +82,7 @@ Feature: the net deposit of a collection of transactions can be calculated
             | 10     | CAD                  | USD      | 2019-07-13 | 6.6667               |
             | 0      | USD                  | CAD      | 2019-07-13 | 0                    |
             | 10     | USD                  | CAD      | 2019-07-13 | 15                   |
+
 
     Scenario Template: The net deposit of a single buy transaction can be calculated
         Given a transaction of amount <amount> <transaction currency> of type deposit at date <date>
@@ -93,4 +99,31 @@ Feature: the net deposit of a collection of transactions can be calculated
             | 0      | USD                  | CAD      | 2019-07-13 | 0                    |
             | 10     | USD                  | CAD      | 2019-07-13 | 15                   |
 
-#    Scenario: The net deposit of a collection of transactions can be calculated
+
+    Scenario: The net deposit of a collection of transactions can be calculated
+        Given the following list of transactions of different amounts and types
+            | amount | currency | type       | date       |
+            | 500    | CAD      | deposit    | 2019-07-13 |
+            | -200   | CAD      | withdrawal | 2019-07-13 |
+            | 50     | CAD      | sell       | 2019-07-13 |
+            | 75     | CAD      | buy        | 2019-07-13 |
+        When the net deposit is calculated in CAD
+        Then the calculated net deposit is 300
+
+
+    Scenario: The net deposit of a collection of transactions can be calculated
+        Given the following list of transactions of different amounts and types
+            | amount | currency | type       | date       |
+            | 500    | CAD      | deposit    | 2019-07-13 |
+            | -200   | CAD      | withdrawal | 2019-07-13 |
+        When the net deposit is calculated in CAD
+        Then the calculated net deposit is 300
+
+
+    Scenario: The net deposit of a collection of transactions can be calculated
+        Given the following list of transactions of different amounts and types
+            | amount | currency | type       | date       |
+            | 50     | CAD      | sell       | 2019-07-13 |
+            | 75     | CAD      | buy        | 2019-07-13 |
+        When the net deposit is calculated in CAD
+        Then the calculated net deposit is 0

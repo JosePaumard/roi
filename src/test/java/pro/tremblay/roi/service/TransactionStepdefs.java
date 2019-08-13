@@ -87,6 +87,11 @@ public class TransactionStepdefs {
         this.transactions = List.of(transaction);
     }
 
+    @Given("^the following list of transactions of different amounts and types$")
+    public void a_list_of_transactions_of_different_amounts_and_types(List<TransactionProxy> transactionProxies) {
+        this.transactions = transactionProxies.stream().map(TransactionProxy::buildTransactionWithAmountAndType).collect(Collectors.toList());
+    }
+
     @When("^the commission is calculated in (CAD|USD)$")
     public void the_commission_is_calculated_in_currency(Currency currency) {
         userDataService = new UserDataService(currency);
@@ -220,7 +225,7 @@ public class TransactionStepdefs {
         }
 
         public BigDecimal getAmount() {
-            return amount.equals("null") ? BigDecimal.ZERO.setScale(4) : new BigDecimal(fee).setScale(4);
+            return amount.equals("null") ? BigDecimal.ZERO.setScale(4) : new BigDecimal(amount).setScale(4);
         }
 
 
@@ -230,6 +235,10 @@ public class TransactionStepdefs {
 
         public Transaction buildTransactionWithType() {
             return new Transaction().fee(getFee()).currency(getCurrency()).type(getType()).tradeDate(getDate());
+        }
+
+        public Transaction buildTransactionWithAmountAndType() {
+            return new Transaction().amount(getAmount()).currency(getCurrency()).type(getType()).tradeDate(getDate());
         }
     }
 }
