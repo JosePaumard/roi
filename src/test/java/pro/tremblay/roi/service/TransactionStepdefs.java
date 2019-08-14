@@ -31,6 +31,8 @@ public class TransactionStepdefs {
     private BigDecimal calculatedCommissionFee;
     private BigDecimal netDeposit;
     private List<BigDecimal> calculatedNetDeposit;
+    private Transaction transaction;
+    private BigDecimal exchangeRate;
 
     @Given("^an empty collection of transactions$")
     public void an_empty_collections_of_transactions() {
@@ -92,6 +94,27 @@ public class TransactionStepdefs {
         this.transactions = transactionProxies.stream().map(TransactionProxy::buildTransactionWithAmountAndType).collect(Collectors.toList());
     }
 
+    @Given("^a transaction of amount (\\d+) with no defined currency and a trade date (.*)$")
+    public void a_transaction_without_a_currency(
+        @Transform(BigDecimalTransformer.class) BigDecimal amount, @Transform(LocalDateTransformer.class) LocalDate tradeDate
+    ) {
+        this.transaction = new Transaction().amount(amount).tradeDate(tradeDate);
+    }
+
+    @Given("^a transaction of amount (\\d+) (CAD|USD) and no trade date$")
+    public void a_transaction_without_a_trade_date(
+        @Transform(BigDecimalTransformer.class) BigDecimal amount, Currency currency) {
+        this.transaction = new Transaction().amount(amount).currency(currency);
+    }
+
+    @Given("^a transaction of amount (\\d+\\.?\\d*) (CAD|USD) and a trade date (.*)$")
+    public void a_transaction_with_an_amount_a_currency_and_a_trade_date(
+        @Transform(BigDecimalTransformer.class) BigDecimal amount, Currency currency, @Transform(LocalDateTransformer.class) LocalDate tradeDate
+    ) {
+        this.transaction = new Transaction().amount(amount).currency(currency).tradeDate(tradeDate);
+    }
+
+
     @When("^the commission is calculated in (CAD|USD)$")
     public void the_commission_is_calculated_in_currency(Currency currency) {
         userDataService = new UserDataService(currency);
@@ -152,6 +175,17 @@ public class TransactionStepdefs {
             .collect(Collectors.toList());
     }
 
+    @When("^the exchange rate is computed in (CAD|USD)$")
+    public void the_exchange_rate_is_computed(Currency currency) {
+        userDataService = new UserDataService(currency);
+        priceService = new PriceService();
+        exchangeRateService = new ExchangeRateService();
+        messageService = new MessageService();
+
+        ReportingService reportingService = new ReportingService(userDataService, priceService, exchangeRateService, messageService);
+        exchangeRate = reportingService.getExchangeRateAtTradeDate(this.transaction);
+    }
+
     @Then("^the calculated commission is (.*) for this transaction$")
     public void the_calculated_commission_is(@Transform(BigDecimalTransformer.class) BigDecimal expectedCommission) {
         assertThat(calculatedCommissionFee).isEqualTo(expectedCommission);
@@ -178,6 +212,11 @@ public class TransactionStepdefs {
             .forEach(calculatedNetDeposit -> softly.assertThat(calculatedNetDeposit).isEqualTo(expectedNetDeposit));
 
         softly.assertAll();
+    }
+
+    @Then("^the calculated exchange rate is (\\d+\\.?\\d* )$")
+    public void the_calculated_exchange_rate_is(@Transform(BigDecimalTransformer.class) BigDecimal expectedExchangeRate) {
+        assertThat(this.exchangeRate).isEqualTo(expectedExchangeRate);
     }
 
     private static class TransactionProxy {

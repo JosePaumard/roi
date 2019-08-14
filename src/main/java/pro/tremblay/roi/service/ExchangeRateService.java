@@ -18,6 +18,7 @@ package pro.tremblay.roi.service;
 import pro.tremblay.roi.domain.Currency;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 
 public class ExchangeRateService extends DependencyService {
@@ -31,6 +32,6 @@ public class ExchangeRateService extends DependencyService {
      * @return change rate
      */
     public BigDecimal getExchangeRate(Currency origin, Currency destination, LocalDate date) {
-        return origin.convertTo(destination);
+        return origin.convertTo(destination).setScale(4, RoundingMode.HALF_UP);
     }
 }
