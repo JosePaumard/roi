@@ -22,10 +22,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TransactionStepdefs {
 
     private List<Transaction> transactions;
-    private UserDataService userDataService;
-    private PriceService priceService;
-    private ExchangeRateService exchangeRateService;
-    private MessageService messageService;
     private List<TransactionProxy> transactionProxies;
     private List<BigDecimal> calculatedCommissions;
     private BigDecimal calculatedCommissionFee;
@@ -117,23 +113,14 @@ public class TransactionStepdefs {
 
     @When("^the commission is calculated in (CAD|USD)$")
     public void the_commission_is_calculated_in_currency(Currency currency) {
-        userDataService = new UserDataService(currency);
-        priceService = new PriceService();
-        exchangeRateService = new ExchangeRateService();
-        messageService = new MessageService();
+        ReportingService reportingService = createReportingServiceFor(currency);
 
-        ReportingService reportingService = new ReportingService(userDataService, priceService, exchangeRateService, messageService);
         calculatedCommissionFee = reportingService.calculateCommission(transactions);
     }
 
     @When("^the commission is calculated in (CAD|USD) for each transaction$")
     public void the_commission_is_calculated_in_currency_for_each_transaction(Currency currency) {
-        userDataService = new UserDataService(currency);
-        priceService = new PriceService();
-        exchangeRateService = new ExchangeRateService();
-        messageService = new MessageService();
-
-        ReportingService reportingService = new ReportingService(userDataService, priceService, exchangeRateService, messageService);
+        ReportingService reportingService = createReportingServiceFor(currency);
 
         List<Transaction> transactions = transactionProxies.stream()
             .map(TransactionProxy::buildTransaction)
@@ -147,23 +134,13 @@ public class TransactionStepdefs {
 
     @When("^the net deposit is calculated in (CAD|USD)$")
     public void the_net_deposit_is_calculated_in(Currency currency) {
-        userDataService = new UserDataService(currency);
-        priceService = new PriceService();
-        exchangeRateService = new ExchangeRateService();
-        messageService = new MessageService();
-
-        ReportingService reportingService = new ReportingService(userDataService, priceService, exchangeRateService, messageService);
+        ReportingService reportingService = createReportingServiceFor(currency);
         netDeposit = reportingService.calculateNetDeposits(transactions);
     }
 
     @When("^the net deposit is calculated in (CAD|USD) for each transaction$")
     public void the_net_deposit_is_calculated_in_currency_for_each_transaction(Currency currency) {
-        userDataService = new UserDataService(currency);
-        priceService = new PriceService();
-        exchangeRateService = new ExchangeRateService();
-        messageService = new MessageService();
-
-        ReportingService reportingService = new ReportingService(userDataService, priceService, exchangeRateService, messageService);
+        ReportingService reportingService = createReportingServiceFor(currency);
 
         List<Transaction> transactions = transactionProxies.stream()
             .map(TransactionProxy::buildTransaction)
@@ -177,12 +154,7 @@ public class TransactionStepdefs {
 
     @When("^the exchange rate is computed in (CAD|USD)$")
     public void the_exchange_rate_is_computed(Currency currency) {
-        userDataService = new UserDataService(currency);
-        priceService = new PriceService();
-        exchangeRateService = new ExchangeRateService();
-        messageService = new MessageService();
-
-        ReportingService reportingService = new ReportingService(userDataService, priceService, exchangeRateService, messageService);
+        ReportingService reportingService = createReportingServiceFor(currency);
         exchangeRate = reportingService.getExchangeRateAtTradeDate(this.transaction);
     }
 
@@ -219,7 +191,16 @@ public class TransactionStepdefs {
         assertThat(this.exchangeRate).isEqualTo(expectedExchangeRate);
     }
 
+    private ReportingService createReportingServiceFor(Currency currency) {
+        UserDataService userDataService = new UserDataService(currency);
+        PriceService priceService = new PriceService();
+        ExchangeRateService exchangeRateService = new ExchangeRateService();
+        MessageService messageService = new MessageService();
+        return new ReportingService(userDataService, priceService, exchangeRateService, messageService);
+    }
+
     private static class TransactionProxy {
+
 
         private String fee;
         private String amount;
