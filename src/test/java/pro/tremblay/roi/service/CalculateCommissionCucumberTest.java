@@ -10,5 +10,5 @@ import org.junit.runner.RunWith;
     glue = {"pro.tremblay.roi.service"},
     plugin = {"pretty"}
 )
-public class CommissionCucumberTest {
+public class CalculateCommissionCucumberTest {
 }

@@ -20,14 +20,8 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pro.tremblay.roi.domain.Account;
-import pro.tremblay.roi.domain.AnomalyType;
 import pro.tremblay.roi.domain.Currency;
-import pro.tremblay.roi.domain.Position;
-import pro.tremblay.roi.domain.Security;
-import pro.tremblay.roi.domain.Transaction;
-import pro.tremblay.roi.domain.TransactionType;
-import pro.tremblay.roi.domain.Variation;
+import pro.tremblay.roi.domain.*;
 import pro.tremblay.roi.service.dto.PriceDTO;
 import pro.tremblay.roi.service.dto.ReportingDTO;
 
@@ -35,14 +29,11 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import static pro.tremblay.roi.util.BigDecimalUtil.*;
+import static pro.tremblay.roi.util.BigDecimalUtil.bd;
+import static pro.tremblay.roi.util.BigDecimalUtil.sum;
 
 public class ReportingService {
 
@@ -88,10 +79,10 @@ public class ReportingService {
      * Calculate a report from the given parameters. This method will not be called directly by production code but
      * is useful during testing.
      *
-     * @param firstDayOfPeriod first day of the period (inclusive)
-     * @param lastDay last day of the period (inclusive)
-     * @param accounts all accounts to be processed
-     * @param transactions all transaction to be processed
+     * @param firstDayOfPeriod      first day of the period (inclusive)
+     * @param lastDay               last day of the period (inclusive)
+     * @param accounts              all accounts to be processed
+     * @param transactions          all transaction to be processed
      * @param priceQuotesWithErrors prices for all positions we have
      * @return the report
      */
@@ -105,7 +96,7 @@ public class ReportingService {
         String message = messageService.getMessage("problem.notAvailable");
 
         // Clone the accounts to prevent modifying the original ones when reverting transactions
-        Map<String, Account> accountsPerName = SerializationUtils.clone((Serializable & Map<String, Account>)  userDataService.getAccountsPerName(accounts));
+        Map<String, Account> accountsPerName = SerializationUtils.clone((Serializable & Map<String, Account>) userDataService.getAccountsPerName(accounts));
 
         Pair<List<Position>, List<Position>> positions = userDataService.getPriceablePositions(accountsPerName.values());
         List<Position> otherPositions = positions.getRight();
@@ -117,8 +108,8 @@ public class ReportingService {
 
         //  To compute NetDeposits we need the transactions during the period including first and last day
         List<Transaction> transactionsInRange = transactions.stream()
-                .filter(t -> t.getTradeDate().isAfter(firstDayOfPeriod.minusDays(1)) && t.getTradeDate().isBefore(lastDay.plusDays(1)))
-                .collect(Collectors.toList());
+            .filter(t -> t.getTradeDate().isAfter(firstDayOfPeriod.minusDays(1)) && t.getTradeDate().isBefore(lastDay.plusDays(1)))
+            .collect(Collectors.toList());
 
         BigDecimal netDeposits = calculateNetDeposits(transactionsInRange);
 
@@ -134,8 +125,8 @@ public class ReportingService {
             // Cannot use date variable in stream comparison
             LocalDate finalComputationDay = computationDay;
             List<Transaction> transactionsOfTheDay = transactions.stream()
-                    .filter(t -> t.getTradeDate().isEqual(finalComputationDay))
-                    .collect(Collectors.toList());
+                .filter(t -> t.getTradeDate().isEqual(finalComputationDay))
+                .collect(Collectors.toList());
 
             // The last two fields are not used by this task as far as I can tell
             revertTransactions(accountsPerName, transactionsOfTheDay);
@@ -149,8 +140,8 @@ public class ReportingService {
 
             //  Check for Negative Position to set anomaly later, for now no anomaly if negative after initial date of period
             negativePositions = allPositions.stream()
-                    .filter( position -> position.getQuantity() < 0 && position.getSecurity().getSymbol() != null)
-                    .collect(Collectors.toList());
+                .filter(position -> position.getQuantity() < 0 && position.getSecurity().getSymbol() != null)
+                .collect(Collectors.toList());
         }
 
         // Reverse to have the oldest date first
@@ -174,18 +165,17 @@ public class ReportingService {
 
         // Add portfolio gain to dailyValue linearly over the whole period, period is given by size()
         List<PriceDTO> adjustedDailyAmount = dailyAmount.stream()
-                .map(v -> PriceDTO.of(v.getDate(),v.getValue()
-                        .add(BigDecimal.valueOf(portfolioGain.doubleValue()))
-                        .setScale(0,RoundingMode.HALF_UP)))
-                .collect(Collectors.toList());
+            .map(v -> PriceDTO.of(v.getDate(), v.getValue()
+                .add(BigDecimal.valueOf(portfolioGain.doubleValue()))
+                .setScale(0, RoundingMode.HALF_UP)))
+            .collect(Collectors.toList());
 
         report.setValuePerDay(adjustedDailyAmount);
         listOfMissingQuotes.forEach(item -> {
             if (item.startsWith("null")) {
                 item = item.substring(6);
                 report.addAnomaly(AnomalyType.NO_PRICE_AVAILABLE, message + " : " + item);
-            }
-            else {
+            } else {
                 report.addAnomaly(AnomalyType.NO_PRICE_AVAILABLE, item);
             }
 
@@ -212,9 +202,9 @@ public class ReportingService {
      */
     BigDecimal calculateNetDeposits(List<Transaction> transactions) {
         return sum(transactions.stream()
-                .filter(t -> t.getAmount() != null)
-                .filter(t -> t.getType().equals(TransactionType.deposit) || t.getType().equals(TransactionType.withdrawal))
-                .map(t -> t.getAmount().multiply(getExchangeRateAtTradeDate(t)).setScale(4, RoundingMode.HALF_UP)));
+            .filter(t -> t.getAmount() != null)
+            .filter(t -> t.getType().equals(TransactionType.deposit) || t.getType().equals(TransactionType.withdrawal))
+            .map(t -> t.getAmount().multiply(getExchangeRateAtTradeDate(t)).setScale(4, RoundingMode.HALF_UP)));
     }
 
     /**
@@ -226,10 +216,11 @@ public class ReportingService {
     BigDecimal getExchangeRateAtTradeDate(Transaction transaction) {
         Currency currency = transaction.getCurrency();
         LocalDate tradeDate = transaction.getTradeDate();
-        if(currency == null || tradeDate == null) {
+        if (currency == null || tradeDate == null) {
             return BigDecimal.ZERO.setScale(4);
         }
-        return exchangeRateService.getExchangeRate(currency, userDataService.getUserCurrency(), tradeDate);
+        BigDecimal exchangeRate = exchangeRateService.getExchangeRate(currency, userDataService.getUserCurrency(), tradeDate);
+        return exchangeRate.setScale(4, RoundingMode.HALF_UP);
     }
 
     /**
@@ -240,9 +231,9 @@ public class ReportingService {
      */
     BigDecimal calculateCommission(List<Transaction> transactions) {
         BigDecimal amount = BigDecimal.ZERO.setScale(4);
-        for(Transaction transaction : transactions) {
+        for (Transaction transaction : transactions) {
             BigDecimal fee = transaction.getFee();
-            if(fee == null) {
+            if (fee == null) {
                 continue;
             }
             Currency currency = transaction.getCurrency();
@@ -251,22 +242,22 @@ public class ReportingService {
             }
 
             BigDecimal rate = getExchangeRateAtTradeDate(transaction);
-            amount = amount.add(rate.multiply(fee)).setScale(4, RoundingMode.HALF_UP);
+            amount = amount.add(rate.multiply(fee));
         }
 
-        return amount;
+        return amount.setScale(4, RoundingMode.HALF_UP);
     }
 
     /**
      * Calculate the daily position. This position is a {@link PriceDTO} added to {@code dailyAmount}.
      *
-     * @param date date for which we want to calculate the position
+     * @param date            date for which we want to calculate the position
      * @param accountsPerName map of accounts by the name
-     * @param prices prices of security by date, symbol and currency
-     * @param dailyAmount list off daily amounts where the newly calculated position will be added
+     * @param prices          prices of security by date, symbol and currency
+     * @param dailyAmount     list off daily amounts where the newly calculated position will be added
      */
     private void calculateDailyPosition(LocalDate date, Map<String, Account> accountsPerName,
-                                         MultiKeyMap<Object, BigDecimal> prices, List<PriceDTO> dailyAmount) {
+                                        MultiKeyMap<Object, BigDecimal> prices, List<PriceDTO> dailyAmount) {
 
         BigDecimal oldPortfolioValue = calculatePortfolioValue(date, accountsPerName.values(), prices);
 
@@ -275,8 +266,9 @@ public class ReportingService {
 
     /**
      * Revert all transactions. It means the impact of the transaction on the current position will be reverted
+     *
      * @param accountsPerName current position as a map of accounts by name
-     * @param transactions transactions to revert
+     * @param transactions    transactions to revert
      */
     private void revertTransactions(Map<String, Account> accountsPerName, List<Transaction> transactions) {
         transactions.forEach(transaction -> {
@@ -288,9 +280,9 @@ public class ReportingService {
     /**
      * Calculate the current value of a portfolio. Including security value and cash amounts.
      *
-     * @param date date of the evaluation
+     * @param date     date of the evaluation
      * @param accounts accounts to calculate
-     * @param prices prices of security by date, symbol and currency
+     * @param prices   prices of security by date, symbol and currency
      * @return portfolio value at the given date
      */
     private BigDecimal calculatePortfolioValue(LocalDate date, Collection<Account> accounts, MultiKeyMap<Object, BigDecimal> prices) {
@@ -310,25 +302,26 @@ public class ReportingService {
     /**
      * Calculate cash value of cash positions.
      *
-     * @param date date of the positions
+     * @param date          date of the positions
      * @param cashPositions all cash positions by currency
      * @return the cash position in the user currency
      */
     BigDecimal calculateCashValue(LocalDate date, Map<Currency, BigDecimal> cashPositions) {
-        return sum(cashPositions.entrySet().stream()
-                .map(e -> {
-                    Currency currency = e.getKey();
-                    BigDecimal rate = exchangeRateService.getExchangeRate(currency, userDataService.getUserCurrency(), date);
-                    return rate.multiply(e.getValue()).setScale(4, RoundingMode.HALF_UP);
-                }));
+        BigDecimal sum = sum(cashPositions.entrySet().stream()
+            .map(e -> {
+                Currency currency = e.getKey();
+                BigDecimal rate = exchangeRateService.getExchangeRate(currency, userDataService.getUserCurrency(), date);
+                return rate.multiply(e.getValue());
+            }));
+        return sum.setScale(4, RoundingMode.HALF_UP);
     }
 
     /**
      * Calculate security value of security positions.
      *
-     * @param date date of the positions
+     * @param date      date of the positions
      * @param positions security positions
-     * @param prices prices of security by date, symbol and currency
+     * @param prices    prices of security by date, symbol and currency
      * @return security value in the user currency
      */
     BigDecimal calculateSecurityValue(LocalDate date, List<Position> positions, MultiKeyMap<Object, BigDecimal> prices) {
@@ -338,7 +331,7 @@ public class ReportingService {
             String symbol = security.getSymbol();
 
             BigDecimal price = prices.get(date, symbol, currency);
-            if(price == null) {
+            if (price == null) {
                 log.error("We should have a price");
                 return BigDecimal.ZERO;
             }

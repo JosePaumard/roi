@@ -32,6 +32,6 @@ public class ExchangeRateService extends DependencyService {
      * @return change rate
      */
     public BigDecimal getExchangeRate(Currency origin, Currency destination, LocalDate date) {
-        return origin.convertTo(destination).setScale(4, RoundingMode.HALF_UP);
+        return origin.convertTo(destination);
     }
 }

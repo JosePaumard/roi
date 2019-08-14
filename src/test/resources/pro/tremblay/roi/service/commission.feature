@@ -168,7 +168,7 @@ Feature: The commission of a collection of transactions can be computed
             | 10  | CAD      | sell       | 2019-07-13 |
             | 10  | CAD      | buy        | 2019-07-13 |
         When the commission is calculated in USD
-        Then the calculated commission is 26.6668 for this transaction
+        Then the calculated commission is 26.6667 for this transaction
 
 
     Scenario: The commission of a collection of different transaction types can be computed

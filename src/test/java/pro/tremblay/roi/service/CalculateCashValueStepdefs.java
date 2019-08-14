@@ -29,7 +29,20 @@ public class CalculateCashValueStepdefs {
     @Given("^an empty position$")
     public void an_empty_position() {
         this.positions = new HashMap<>();
-        BigDecimal zero = BigDecimal.ZERO;
+    }
+
+    @Given("^the following position$")
+    public void the_following_position(List<Position> positions) {
+        this.positions =
+            positions.stream()
+                .collect(
+                    Collectors.groupingBy(
+                        Position::getCurrency,
+                        Collectors.mapping(
+                            Position::getAmount, Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)
+                        )
+                    )
+                );
     }
 
     @When("^the cash value is computed in (CAD|USD)$")
@@ -44,22 +57,8 @@ public class CalculateCashValueStepdefs {
     }
 
     @Then("^the resulting cash value is (.*)$")
-    public void the_resulting_vash_value_is(@Transform(BigDecimalTransformer.class) BigDecimal expectedCashValue) {
+    public void the_resulting_cash_value_is(@Transform(BigDecimalTransformer.class) BigDecimal expectedCashValue) {
         assertThat(this.cashValue).isEqualTo(expectedCashValue);
-    }
-
-    @Given("^the following position$")
-    public void the_following_position(List<Position> positions) {
-        this.positions =
-            positions.stream()
-                .collect(
-                    Collectors.groupingBy(
-                        Position::getCurrency,
-                        Collectors.mapping(
-                            Position::getAmount, Collectors.reducing(ZERO_SCALE_4, BigDecimal::add)
-                        )
-                    )
-                );
     }
 
     private static class Position {

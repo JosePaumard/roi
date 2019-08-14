@@ -186,7 +186,7 @@ public class TransactionStepdefs {
         softly.assertAll();
     }
 
-    @Then("^the calculated exchange rate is (\\d+\\.?\\d* )$")
+    @Then("^the calculated exchange rate is (\\d+\\.?\\d*)$")
     public void the_calculated_exchange_rate_is(@Transform(BigDecimalTransformer.class) BigDecimal expectedExchangeRate) {
         assertThat(this.exchangeRate).isEqualTo(expectedExchangeRate);
     }
