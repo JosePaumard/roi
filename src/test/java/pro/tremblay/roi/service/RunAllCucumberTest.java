@@ -10,7 +10,8 @@ import pro.tremblay.roi.domain.CurrencyCucumberTest;
     CalculateCashValueCucumberTest.class,
     CalculateCommissionCucumberTest.class,
     CalculateNetDepositCucumberTest.class,
-    GetExchangeRateCucumberTest.class}
+    GetExchangeRateCucumberTest.class,
+    CalculateSecurityValueCucumberTest.class}
 )
 public class RunAllCucumberTest {
 }
