@@ -201,10 +201,11 @@ public class ReportingService {
      * @return the net deposit
      */
     BigDecimal calculateNetDeposits(List<Transaction> transactions) {
-        return sum(transactions.stream()
+        BigDecimal sum = sum(transactions.stream()
             .filter(t -> t.getAmount() != null)
             .filter(t -> t.getType().equals(TransactionType.deposit) || t.getType().equals(TransactionType.withdrawal))
-            .map(t -> t.getAmount().multiply(getExchangeRateAtTradeDate(t)).setScale(4, RoundingMode.HALF_UP)));
+            .map(t -> t.getAmount().multiply(getExchangeRateAtTradeDateUnscaled(t))));
+        return sum.setScale(4, RoundingMode.HALF_UP);
     }
 
     /**
@@ -214,13 +215,17 @@ public class ReportingService {
      * @return rate, in user currency
      */
     BigDecimal getExchangeRateAtTradeDate(Transaction transaction) {
+        return getExchangeRateAtTradeDateUnscaled(transaction).setScale(4, RoundingMode.HALF_UP);
+    }
+
+    private BigDecimal getExchangeRateAtTradeDateUnscaled(Transaction transaction) {
         Currency currency = transaction.getCurrency();
         LocalDate tradeDate = transaction.getTradeDate();
         if (currency == null || tradeDate == null) {
             return BigDecimal.ZERO.setScale(4);
         }
         BigDecimal exchangeRate = exchangeRateService.getExchangeRate(currency, userDataService.getUserCurrency(), tradeDate);
-        return exchangeRate.setScale(4, RoundingMode.HALF_UP);
+        return exchangeRate;
     }
 
     /**
@@ -230,7 +235,7 @@ public class ReportingService {
      * @return the commission, in user currency
      */
     BigDecimal calculateCommission(List<Transaction> transactions) {
-        BigDecimal amount = BigDecimal.ZERO.setScale(4);
+        BigDecimal amount = BigDecimal.ZERO;
         for (Transaction transaction : transactions) {
             BigDecimal fee = transaction.getFee();
             if (fee == null) {
@@ -241,7 +246,7 @@ public class ReportingService {
                 continue;
             }
 
-            BigDecimal rate = getExchangeRateAtTradeDate(transaction);
+            BigDecimal rate = getExchangeRateAtTradeDateUnscaled(transaction);
             amount = amount.add(rate.multiply(fee));
         }
 
@@ -325,7 +330,7 @@ public class ReportingService {
      * @return security value in the user currency
      */
     BigDecimal calculateSecurityValue(LocalDate date, List<Position> positions, MultiKeyMap<Object, BigDecimal> prices) {
-        return sum(positions.stream().map((Position pos) -> {
+        BigDecimal sum = sum(positions.stream().map((Position pos) -> {
             Security security = pos.getSecurity();
             Currency currency = security.getCurrency();
             String symbol = security.getSymbol();
@@ -341,6 +346,7 @@ public class ReportingService {
 
             return price.multiply(quantity).multiply(dayRate);
         }));
+        return sum.setScale(4, RoundingMode.HALF_UP);
     }
 
 }
