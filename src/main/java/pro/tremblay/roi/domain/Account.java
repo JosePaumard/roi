@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * An account with cash and security positions.
@@ -71,5 +72,20 @@ public class Account implements Entity {
     public Account cash(BigDecimal cash) {
         this.cash = cash;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Account account = (Account) o;
+        return name.equals(account.name) &&
+            currency == account.currency &&
+            cash.equals(account.cash);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, currency, cash);
     }
 }

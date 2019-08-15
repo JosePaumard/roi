@@ -61,8 +61,10 @@ public class ReportingService {
      * @return the report
      */
     public ReportingDTO getReport(LocalDate firstDayOfPeriod) {
-        LocalDate lastDay = LocalDate.now();
+        return getReport(firstDayOfPeriod, LocalDate.now());
+    }
 
+    ReportingDTO getReport(LocalDate firstDayOfPeriod, LocalDate lastDayOfPeriod) {
         Pair<List<Account>, List<Transaction>> data = userDataService.getUserData(firstDayOfPeriod);
         List<Account> accounts = data.getLeft();
         List<Transaction> transactions = data.getRight();
@@ -70,9 +72,10 @@ public class ReportingService {
         Pair<List<Position>, List<Position>> positions = userDataService.getPriceablePositions(accounts);
         List<Position> finalPositions = positions.getLeft();
 
-        Pair<MultiKeyMap<Object, BigDecimal>, Collection<String>> priceQuotesWithErrors = priceService.getPricesForPositions(finalPositions, firstDayOfPeriod, lastDay);
+        Pair<MultiKeyMap<Object, BigDecimal>, Collection<String>> priceQuotesWithErrors =
+            priceService.getPricesForPositions(finalPositions, firstDayOfPeriod, lastDayOfPeriod);
 
-        return getReportForPeriod(firstDayOfPeriod, lastDay, accounts, transactions, priceQuotesWithErrors);
+        return getReportForPeriod(firstDayOfPeriod, lastDayOfPeriod, accounts, transactions, priceQuotesWithErrors);
     }
 
     /**

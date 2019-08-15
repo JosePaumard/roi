@@ -19,6 +19,7 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.commons.lang3.tuple.Pair;
 import pro.tremblay.roi.domain.Currency;
 import pro.tremblay.roi.domain.Position;
+import pro.tremblay.roi.domain.PricedSecurity;
 import pro.tremblay.roi.domain.Security;
 
 import java.math.BigDecimal;
@@ -44,6 +45,10 @@ public class PriceService extends DependencyService {
 
     public void addPrice(Security security, BigDecimal price) {
         prices.put(security, price);
+    }
+
+    public void addPrice(PricedSecurity security) {
+        prices.put(security.getSecurity(), security.getPrice());
     }
 
     ///////////////////////

@@ -15,6 +15,8 @@
  */
 package pro.tremblay.roi.domain;
 
+import java.util.Objects;
+
 /**
  * A security position held by an account.
  */
@@ -46,4 +48,17 @@ public class Position implements Entity {
         return quantity;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Position position = (Position) o;
+        return security.equals(position.security) &&
+            quantity.equals(position.quantity);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(security, quantity);
+    }
 }

@@ -17,6 +17,7 @@ package pro.tremblay.roi.domain;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Objects;
 
 /**
  * Entity. A transaction to buy or sell a security
@@ -109,5 +110,25 @@ public class Transaction implements Entity {
     public Transaction fee(BigDecimal fee) {
         this.fee = fee;
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Transaction that = (Transaction) o;
+        return accountName.equals(that.accountName) &&
+            security.equals(that.security) &&
+            tradeDate.equals(that.tradeDate) &&
+            currency == that.currency &&
+            type == that.type &&
+            amount.equals(that.amount) &&
+            fee.equals(that.fee) &&
+            quantity.equals(that.quantity);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(accountName, security, tradeDate, currency, type, amount, fee, quantity);
     }
 }
