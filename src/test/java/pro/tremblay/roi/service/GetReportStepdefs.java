@@ -16,6 +16,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.util.function.Function.identity;
@@ -29,12 +30,12 @@ public class GetReportStepdefs {
     private LocalDate reportStartDate;
     private LocalDate reportEndDate;
     private ReportingDTO report;
-    private List<SecurityProxy> securityProxies;
-    private List<AccountProxy> accountProxies;
+    private List<SecurityProxy> securityProxies = List.of();
+    private List<AccountProxy> accountProxies = List.of();
     private List<Account> accounts;
-    private List<PositionProxy> positionProxies;
+    private List<PositionProxy> positionProxies = List.of();
     private List<Position> positions;
-    private List<TransactionProxy> transactionProxies;
+    private List<TransactionProxy> transactionProxies = List.of();
     private List<Transaction> transactions;
     private UserDataService userDataService;
 
@@ -92,9 +93,11 @@ public class GetReportStepdefs {
         securityProxies.stream().map(SecurityProxy::toPricedSecurity).forEach(priceService::addPrice);
 
         userDataService = new UserDataService(currency);
-        accountProxies.stream().map(AccountProxy::toAccount).forEach(userDataService::addAccount);
 
-        Account account = accountProxies.get(0).toAccount();
+        List<Account> accounts = accountProxies.stream().map(AccountProxy::toAccount).collect(Collectors.toList());
+        accounts.forEach(userDataService::addAccount);
+
+        Account account = accounts.get(0);
         positionProxies.stream().map(PositionProxy::toPosition).forEach(account::addPosition);
 
         transactions = transactionProxies.stream().map(TransactionProxy::toTransaction).collect(Collectors.toList());
@@ -402,7 +405,7 @@ public class GetReportStepdefs {
         }
 
         public Security getSecurity() {
-            return securityRegistry.get(security);
+            return Objects.equals(security, "null") ? null : securityRegistry.get(security);
         }
 
         public void setSecurity(String security) {
